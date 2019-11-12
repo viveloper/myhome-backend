@@ -16,7 +16,10 @@ const verifyToken = (req, res, next) => {
             return next(err);
         }
 
-        req.user = { email: decoded.email };
+        req.user = { 
+            email: decoded.email,
+            username: decoded.username
+        };
         return next();
     });
 }

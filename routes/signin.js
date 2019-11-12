@@ -1,55 +1,65 @@
 const router = require('express').Router();
 const jwt = require('jsonwebtoken');
-
 const delay = 500;
 
-router.get('/', (req, res) => {
-  res.json({
-    title: 'signin',
-    desc: 'hello signin'
-  });
+const users = [
+    {
+        email: 'casio@chova.com',
+        username: 'casio',
+        password: '123456'
+    },
+    {
+        email: 'hayanagirl@chova.com',
+        username: 'hayanagirl',
+        password: '123456'
+    }
+];
+
+router.get('/', (req, res, next) => {
+    res.send(`hello from signin`);
 });
 
-router.post('/', (req, res) => {
-  setTimeout(() => {
-    if (req.body.email === 'viveloper@google.com' && req.body.password === '123456') {
-      const { secretKey } = req.config;
-      jwt.sign(
-        {
-          email: 'viveloper@google.com',
-          username: 'viveloper'
-        },
-        secretKey,
-        {
-          expiresIn: '7d',
-          issuer: 'velopert.com',
-          subject: 'userInfo'
-        },
-        (err, token) => {
-          if (err) {
-            const reason = {
-              message: 'token creation failure.'
-            }
-            res.status(401).json(reason);
-          }
-          else {
-            const user = {
-              email: 'viveloper@google.com',
-              username: 'viveloper',
-              token
-            }
-            res.json(user);
-          }
+router.post('/', (req, res, next) => {
+    const { email, password } = req.body;
+    const { secretKey } = req.config;
+
+    setTimeout(() => {
+        const user = users.find(user => user.email === email && user.password === password);
+
+        if (user) {
+            jwt.sign(
+                {
+                    email: user.email,
+                    username: user.username
+                },
+                secretKey,
+                {
+                    expiresIn: '7d',
+                    issuer: 'velopert.com',
+                    subject: 'userInfo'
+                },
+                (err, token) => {
+                    if (!err) {                        
+                        res.json({
+                            email: user.email,
+                            username: user.username,
+                            token
+                        });
+                    }
+                    else {
+                        res.status(401).json({
+                            message: 'token creation failure.'
+                        });
+                    }
+                }
+            )
         }
-      )
-    }
-    else {
-      const reason = {
-        message: 'email or password is wrong.'
-      }
-      res.status(401).json(reason);
-    }
-  }, delay)
+        else {
+            res.status(401).json({
+                message: 'email or password is wrong.'
+            });
+        }
+    }, delay);
 });
 
 module.exports = router;
